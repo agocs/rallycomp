@@ -94,7 +94,7 @@ void setup() {
   // For parsing data, we don't suggest using anything but either RMC only or RMC+GGA since
   // the parser doesn't care about other sentences at this time
   // Set the update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ); // 5 Hz update rate
   // For the parsing code to work nicely and have time to sort thru the data, and
   // print it out we don't suggest using anything higher than 1 Hz
 
@@ -106,6 +106,35 @@ void setup() {
   // Ask for firmware version
   GPSSerial.println(PMTK_Q_RELEASE);
   
+}
+
+struct screenInfo {
+  string time;
+  string current_speed;
+  string odometer;
+  string average_speed;
+}
+
+struct fix{
+  float latitude;
+  float longitude;
+}
+
+fix parseFix(){
+
+}
+
+screenInfo parseGPS(){
+  //time
+  //23:59:59 -- 8 chars
+  char time[8];
+  sprintf(time, "%d:%d:%d", GPS.hour, GPS.minute, GPS.seconds)
+
+  //current_speed
+  //GPSRMC fix doesn't have enough precision
+  //TODO: instantaneous speed
+  //TODO: odometer
+  //TODO: average speed
 }
 
 void loop() {
