@@ -120,8 +120,20 @@ struct fix{
   float longitude;
 }
 
-fix parseFix(){
+fix parseFix(float latitude, float longitude){
+  //this might be a little lossy, but hopefully not very
+  //move decimal point two places to the left
+  latitude = latitude / 100.0;
+  float lat_degrees = (float)(int)latitude;
+  float lat_minutes = (latitude - (float)lat_degrees) * 100.0;
+  lat_degrees = lat_degrees + (lat_minutes / 60.0); //hopefully the compiler optimizes this
 
+  longitude = longitude / 100.0;
+  float lon_degrees = (float)(int)longitude;
+  float lon_minutes = (longitude - (float)lon_minutes) * 100.0;
+  lon_degrees = lon_degrees + (lon_minutes / 60.0);
+  
+  return fix{lat_degrees, lon_degrees};
 }
 
 screenInfo parseGPS(){
