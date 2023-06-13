@@ -109,18 +109,18 @@ void setup() {
 }
 
 struct screenInfo {
-  string time;
-  string current_speed;
-  string odometer;
-  string average_speed;
-}
+  String time;
+  String current_speed;
+  String odometer;
+  String average_speed;
+};
 
 struct fix{
   float latitude;
   float longitude;
-}
+};
 
-fix parseFix(float latitude, float longitude){
+parseFix(float latitude, float longitude) {
   //this might be a little lossy, but hopefully not very
   //move decimal point two places to the left
   latitude = latitude / 100.0;
@@ -136,11 +136,11 @@ fix parseFix(float latitude, float longitude){
   return fix{lat_degrees, lon_degrees};
 }
 
-screenInfo parseGPS(){
+makeScreenInfo() {
   //time
   //23:59:59 -- 8 chars
   char time[8];
-  sprintf(time, "%d:%d:%d", GPS.hour, GPS.minute, GPS.seconds)
+  sprintf(time, "%d:%d:%d", GPS.hour, GPS.minute, GPS.seconds);
 
   //current_speed
   //GPSRMC fix doesn't have enough precision
@@ -170,35 +170,35 @@ void loop() {
   if (millis() - timer > 2000) {
     timer = millis(); // reset the timer
     display.clearDisplay();
-    display.print("\nTime: ");
-    if (GPS.hour < 10) { display.print('0'); }
-    display.print(GPS.hour, DEC); display.print(':');
-    if (GPS.minute < 10) { display.print('0'); }
-    display.print(GPS.minute, DEC); display.print(':');
-    if (GPS.seconds < 10) { display.print('0'); }
-    display.print(GPS.seconds, DEC); display.print('.');
+    Serial.print("\nTime: ");
+    if (GPS.hour < 10) { Serial.print('0'); }
+    Serial.print(GPS.hour, DEC); Serial.print(':');
+    if (GPS.minute < 10) { Serial.print('0'); }
+    Serial.print(GPS.minute, DEC); Serial.print(':');
+    if (GPS.seconds < 10) { Serial.print('0'); }
+    Serial.print(GPS.seconds, DEC); Serial.print('.');
     if (GPS.milliseconds < 10) {
-      display.print("00");
+      Serial.print("00");
     } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
-      display.print("0");
+      Serial.print("0");
     }
-    display.println(GPS.milliseconds);
-    display.print("Date: ");
-    display.print(GPS.day, DEC); display.print('/');
-    display.print(GPS.month, DEC); display.print("/20");
-    display.println(GPS.year, DEC);
-    display.print("Fix: "); display.print((int)GPS.fix);
-    display.print(" quality: "); display.println((int)GPS.fixquality);
+    Serial.println(GPS.milliseconds);
+    Serial.print("Date: ");
+    Serial.print(GPS.day, DEC); Serial.print('/');
+    Serial.print(GPS.month, DEC); Serial.print("/20");
+    Serial.println(GPS.year, DEC);
+    Serial.print("Fix: "); Serial.print((int)GPS.fix);
+    Serial.print(" quality: "); Serial.println((int)GPS.fixquality);
     if (GPS.fix) {
-      display.print("Location: ");
-      display.print(GPS.latitude, 4); display.print(GPS.lat);
-      display.print(", ");
-      display.print(GPS.longitude, 4); display.println(GPS.lon);
-      display.print("Speed (knots): "); display.println(GPS.speed);
-      display.print("Angle: "); display.println(GPS.angle);
-      display.print("Altitude: "); display.println(GPS.altitude);
-      display.print("Satellites: "); display.println((int)GPS.satellites);
-      display.print("Antenna status: "); display.println((int)GPS.antenna);
+      Serial.print("Location: ");
+      Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
+      Serial.print(", ");
+      Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
+      Serial.print("Speed (knots): "); Serial.println(GPS.speed);
+      Serial.print("Angle: "); Serial.println(GPS.angle);
+      Serial.print("Altitude: "); Serial.println(GPS.altitude);
+      Serial.print("Satellites: "); Serial.println((int)GPS.satellites);
+      Serial.print("Antenna status: "); Serial.println((int)GPS.antenna);
     }
   }
 
