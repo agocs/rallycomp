@@ -120,7 +120,7 @@ struct fix{
   float longitude;
 };
 
-fix parseFix(float latitude, float longitude) {
+int parseFix (struct fix *output, float latitude, float longitude) {
   //this might be a little lossy, but hopefully not very
   //move decimal point two places to the left
   latitude = latitude / 100.0;
@@ -134,12 +134,12 @@ fix parseFix(float latitude, float longitude) {
   lon_degrees = lon_degrees + (lon_minutes / 60.0);
   
   fix toReturn;
-  toReturn.latitude = lat_degrees;
-  toReturn.longitude = lon_degrees;
-  return toReturn;
+  (*output).latitude = lat_degrees;
+  (*output).longitude = lon_degrees;
+  return 0;
 }
 
-screenInfo makeScreenInfo() {
+int makeScreenInfo(struct screenInfo *output) {
   //time
   //23:59:59 -- 8 chars
   char time[8];
@@ -150,9 +150,8 @@ screenInfo makeScreenInfo() {
   //TODO: instantaneous speed
   //TODO: odometer
   //TODO: average speed
-  screenInfo toReturn;
 
-  return toReturn;
+  return 1;
 }
 
 void loop() {
