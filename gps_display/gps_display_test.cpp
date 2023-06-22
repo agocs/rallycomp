@@ -34,6 +34,10 @@ bool testParseFix(){
     passed = passed & floatAssertEquals(0, parsed.longitude, "Zeros longitude");
 
     //TODO: Make a test from live GPS data
+    //4740.6709N, 12225.7666W
+    parseFix(&parsed, 4740.6709, 'N', 12225.7666, 'W');
+    passed = passed & floatAssertEquals(47.677845, parsed.latitude, "Recorded data latitude");
+    passed = passed & floatAssertEquals(-122.429443, parsed.longitude, "Recorded data longitude");
 
     return passed;
 }
@@ -49,3 +53,14 @@ int main(int argc, char const *argv[])
         printf("Tests passed!! =)\n");
     }
 }
+
+
+/*
+Some NMEA data
+
+ $GLGSA,A,3,78,68,85,79,69,,,,,,,,1.37,1.10,0.82*1C
+ $GNGGA,041753.000,4740.6710,N,12225.7710,W,1,10,1.10,102.6,M,-17.3,M,,*4C
+ $GNRMC,041753.000,A,4740.6710,N,12225.7710,W,0.15,0.00,220623,,,A*61
+ $GNVTG,0.00,T,,M,0.12,N,0.23,K,A*21
+ $GPGSA,A,3,03,25,31,32,26,,,,,,,,1.37,1.10,0.82*0E
+*/
