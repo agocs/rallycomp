@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cmath>
 
-
 // struct screenInfo {
 //   String time;
 //   String current_speed;
@@ -11,9 +10,24 @@
 //   String average_speed;
 // };
 
+////     //parseDateTime(uint8_t year, uint8_t month, uint8_t day,
+//     //                 uint8_t hours, uint8_t minutes, uint8_t seconds,
+//     //                 uint16_t milliseconds)
+struct instant{
+  uint8_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t hours;
+  uint8_t minutes;
+  uint8_t seconds;
+  uint16_t milliseconds;
+};
+
 struct fix{
   float latitude;
   float longitude;
+  float altitude;
+  instant *time;
 };
 
 struct displacement{
@@ -21,7 +35,7 @@ struct displacement{
   double bearingDegrees;
 };
 
-int parseFix (struct fix *output, float latitude, char lat_dir, float longitude, char lon_dir) {
+int parseFix (struct fix *output, float latitude, char lat_dir, float longitude, char lon_dir, float altitude) {
   //this might be a little lossy, but hopefully not very
   //move decimal point two places to the left
   latitude = latitude / 100.0;
@@ -44,6 +58,7 @@ int parseFix (struct fix *output, float latitude, char lat_dir, float longitude,
 
   (*output).latitude = lat_degrees;
   (*output).longitude = lon_degrees;
+  (*output).altitude = altitude;
   return 0;
 }
 
@@ -86,18 +101,32 @@ double calculateDisplacement(struct displacement *output, const fix& fix1, const
 
   double distance = EarthRadius * c;
 
+  float altitude_difference = fix2.altitude - fix1.altitude;
+
+  distance = sqrt (pow(distance, 2) + pow(altitude_difference, 2));
+
   (*output).distanceMeters = distance;
   (*output).bearingDegrees = bearing;
 
   return distance;
 }
 
+//This really only needs to work when start and end are within like 2 seconds of each other, max
+//returns difference in milliseconds
+int calculateTimeDifference(struct instant *start, struct instant *end){
+   int result = end->milliseconds - start->milliseconds;
+   result += (end->seconds - start->seconds) * 1000;
+   result += (end->minutes - start->minutes) * 60 * 1000;
+   result += (end->hours - start->hours) * 60 * 60 * 1000;
 
-//TODO: time_t probably isn't the right class here. Chrono?
-// int parseTime(time_t *output, uint8_t year, uint8_t month, uint8_t day, uint8_t hours, uint8_t minutes, uint8_t seconds, uint16_t milliseconds){
-//   time_t currentTime;
-//   return 0;
-// }
+   //okay realistically we're only going to see the same day or the next day here
+   //This solution should take care of month boundaries, year boundaries, and leap years
+   if (end->day != start->day){
+    result += 24 * 60 * 60 * 1000;
+   }
+  return result;
+};
+
 
 // int makeScreenInfo(struct screenInfo *output) {
 //   //time

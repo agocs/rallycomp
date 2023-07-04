@@ -3,6 +3,17 @@
 #include <time.h>
 #include <math.h>
 
+bool intAssertEquals(int expected, int test, char* message){
+    if (expected != test){
+        printf("TEST FAILED: %s\n", message);
+        printf("\texpected: %f\n", expected);
+        printf("\t.....got: %f\n", test);
+        return false;
+    }
+    printf("Test passed: %s\n", message);
+    return true;
+}
+
 bool floatAssertEquals(float expected, float test, char *message){
     if (expected != test) {
         printf("TEST FAILED: %s\n", message);
@@ -31,7 +42,7 @@ bool testParseFix(){
     bool passed = true;
 
     fix parsed;
-    parseFix(&parsed, 5107.0017737, 'N', 11402.3291611, 'W');
+    parseFix(&parsed, 5107.0017737, 'N', 11402.3291611, 'W', 100.0);
     //latitude 51 degrees 07.0017737 minutes
     //should be 51.1167
     //longitude 114 degrees 02.3291611 minutes
@@ -40,15 +51,18 @@ bool testParseFix(){
     printf("About to start assertions...\n");
     passed = passed & floatAssertEquals(51.1167F, parsed.latitude, "First latitude");
     passed = passed & floatAssertEquals(-114.03882F, parsed.longitude, "First longitude");
+    passed = passed & floatAssertEquals(100, parsed.altitude, "First Altitude");
 
-    parseFix(&parsed, 0, 'N', 0, 'E');
+    parseFix(&parsed, 0, 'N', 0, 'E', 0);
     passed = passed & floatAssertEquals(0, parsed.latitude, "Zeros latitude");
     passed = passed & floatAssertEquals(0, parsed.longitude, "Zeros longitude");
+    passed = passed & floatAssertEquals(0, parsed.altitude, "zero altitude");
 
     //4740.6709N, 12225.7666W
-    parseFix(&parsed, 4740.6709, 'N', 12225.7666, 'W');
+    parseFix(&parsed, 4740.6709, 'N', 12225.7666, 'W', 102.6);
     passed = passed & floatAssertEquals(47.677845, parsed.latitude, "Recorded data latitude");
     passed = passed & floatAssertEquals(-122.429443, parsed.longitude, "Recorded data longitude");
+    passed = passed & floatAssertEquals(102.6, parsed.altitude, "Recorded data altitude");
 
     return passed;
 }
@@ -62,16 +76,20 @@ bool testCalculateDisplacement(){
     fix fix1;
     fix1.latitude = 47.677845;
     fix1.longitude = -122.429443;
+    fix1.altitude = 50;
 
     fix fix2;
     fix2.latitude = 47.694186;
     fix2.longitude = -122.418624;
+    fix2.altitude = 100;
 
     displacement output;
 
     calculateDisplacement(&output, fix1, fix2);
 
-    passed = passed & doubleAssertEquals(1989.448794, output.distanceMeters, "Displacement distance");
+    //1989.448794 m flat
+    //1990.077009 m with altitude
+    passed = passed & doubleAssertEquals(1990.077009, output.distanceMeters, "Displacement distance");
     passed = passed & doubleAssertEquals(24.016263, output.bearingDegrees, "Displacement degrees");
 
     //one minute of latitude
@@ -81,10 +99,12 @@ bool testCalculateDisplacement(){
     fix fix3;
     fix3.latitude = 0;
     fix3.longitude = 0;
+    fix3.altitude - 0;
 
     fix fix4;
     fix4.latitude = 0.016666666666; //one minute of latitude
     fix4.longitude = 0;
+    fix4.altitude = 0;
 
     displacement output2;
 
@@ -96,11 +116,94 @@ bool testCalculateDisplacement(){
     return passed;
 }
 
+bool testCalculateTimeDifference(){
+    bool passed = true;
+
+    instant time1;
+    instant time2;
+
+    time1.year = 2023;
+    time1.month = 7;
+    time1.day = 3;
+    time1.hours = 21;
+    time1.minutes = 36;
+    time1.seconds = 18;
+    time1.milliseconds = 400;
+
+    time2.year = 2023;
+    time2.month = 7;
+    time2.day = 3;
+    time2.hours = 21;
+    time2.minutes = 36;
+    time2.seconds = 18;
+    time2.milliseconds = 800;
+
+    int difference1 = calculateTimeDifference(&time1, &time2);
+    passed = passed & intAssertEquals(400, difference1, "400 ms");
+
+    time2.seconds = 19;
+    time2.milliseconds = 400;
+
+    int difference2 = calculateTimeDifference(&time1, &time2);
+    passed = passed & intAssertEquals(1000, difference2, "second boundary");
+
+    time2.minutes = 37;
+    time2.milliseconds = 401;
+
+    int difference3 = calculateTimeDifference(&time1, &time2);
+    passed = passed & intAssertEquals(61001, difference3, "one minute and one ms");
+
+    //let's test a day boundary
+
+    time1.hours = 23;
+    time1.minutes = 59;
+    time1.seconds = 59;
+    time1.milliseconds = 900;
+
+    time2.day = 4;
+    time2.hours = 0;
+    time2.minutes = 0;
+    time2.seconds = 0;
+    time2.milliseconds = 100;
+
+    int difference4 = calculateTimeDifference(&time1, &time2);
+    passed = passed & intAssertEquals(200, difference4, "day boundary");
+
+    //month boundary?
+
+    time1.day = 31;
+
+    time2.month = 8;
+    time2.day = 1;
+
+    int difference5 = calculateTimeDifference(&time1, &time2);
+    passed = passed & intAssertEquals(200, difference5, "month boundary");
+
+    return passed;
+}
+
+// bool testParseDateTime(){
+//     bool passed = true;
+//     //parseDateTime(uint8_t year, uint8_t month, uint8_t day,
+//     //                 uint8_t hours, uint8_t minutes, uint8_t seconds,
+//     //                 uint16_t milliseconds)
+
+//     hackyTime ht = parseDateTime(2023, 7, 27, 23, 25, 8, 521);
+//     tmElements_t tm;
+//     breakTime(ht.datetime, tm);
+//     int year = tm.Year + 1970;
+//     passed = passed & intAssertEquals(2023, year, "parseDateTime year");
+
+//     return passed;
+// }
+
 int main(int argc, char const *argv[])
 {
     bool passed = true;
     passed = passed & testParseFix();
     passed = passed & testCalculateDisplacement();
+    passed = passed & testCalculateTimeDifference();
+    // passed = passed & testParseDateTime();
 
     if (!passed){
         printf("ONE OR MORE TESTS FAILED!!!!\n");
