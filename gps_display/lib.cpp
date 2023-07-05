@@ -128,6 +128,48 @@ int calculateTimeDifference(struct instant *start, struct instant *end){
 };
 
 
+const int FIXES_LENGTH = 10;
+fix *fixes[FIXES_LENGTH];
+int8_t fixes_head = -1;
+bool fixes_populated = false;
+
+int addFix(fix *thisFix){
+  fixes_head = (fixes_head + 1) % FIXES_LENGTH;
+  fixes[fixes_head] = thisFix;
+
+  //The first time we've filled this buffer, we should 
+  //set fixes_populated.
+  if (!fixes_populated && fixes_head == 9){
+    fixes_populated = true;
+  }
+}
+
+double calcCurrentSpeed(){
+  if (!fixes_populated){
+    return 0;
+  }
+  fix *end = fixes[fixes_head];
+  fix *start = fixes[(fixes_head - 1) % FIXES_LENGTH];
+
+  displacement d; 
+  calculateDisplacement(&d, *start, *end);
+
+  int delta_ms = calculateTimeDifference(start->time, end->time);
+
+  //d meters     x kilometers
+  //--------  =  ------------
+  //delta_ms     1 hour
+
+  double km_per_hour = (d.distanceMeters / delta_ms) * 60;
+  //This seems wrong but hear me out
+  // meters_per_millisecond = d.distanceMeters / delta_ms
+  // meters_per_hour = meters_per_millisecond * 1000 * 60
+  // km_per_hour = meters_per_hour / 1000
+  // the two 1000s cancel out, leaving us with (meters / milliseconds) * 60
+  return km_per_hour;
+}
+
+
 // int makeScreenInfo(struct screenInfo *output) {
 //   //time
 //   //23:59:59 -- 8 chars
