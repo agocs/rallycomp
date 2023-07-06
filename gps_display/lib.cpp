@@ -144,7 +144,12 @@ int addFix(fix thisFix){
   }
 }
 
-double calcCurrentSpeed(){
+struct velocity{
+  double speed_kmh;
+  double bearingDegrees;
+};
+
+double calcCurrentSpeed(struct velocity *current){
   if (!fixes_populated){
     return 0;
   }
@@ -166,6 +171,8 @@ double calcCurrentSpeed(){
   // meters_per_hour = meters_per_millisecond * 1000 * 3600
   // km_per_hour = meters_per_hour / 1000
   // the two 1000s cancel out, leaving us with (meters / milliseconds) * 3600
+  (*current).speed_kmh = km_per_hour;
+  (*current).bearingDegrees = d.bearingDegrees;
   return km_per_hour;
 }
 
