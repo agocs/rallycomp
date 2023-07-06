@@ -6,8 +6,8 @@
 bool intAssertEquals(int expected, int test, char* message){
     if (expected != test){
         printf("TEST FAILED: %s\n", message);
-        printf("\texpected: %f\n", expected);
-        printf("\t.....got: %f\n", test);
+        printf("\texpected: %i\n", expected);
+        printf("\t.....got: %i\n", test);
         return false;
     }
     printf("Test passed: %s\n", message);
@@ -36,6 +36,21 @@ bool doubleAssertEquals(double expected, double test, char *message){
     }
     printf("Test passed: %s\n", message);
     return true;
+}
+
+bool boolAssertEquals(bool expected, bool test, char *message){
+    if (expected != test){
+        printf("TEST FAILED: %s\n", message);
+        printf("\texpected: %d\n", expected);
+        printf("\t.....got: %d\n", test);
+    }
+}
+
+void printFix(fix toPrint){
+    printf("\tlongitude: %f\n", toPrint.longitude);
+    printf("\tlatitude:  %f\n", toPrint.latitude);
+    printf("\taltitude:  %f\n", toPrint.altitude);
+    printf("\ttime: %i:%i:%i.%i\n", toPrint.time.hours, toPrint.time.minutes, toPrint.time.seconds, toPrint.time.milliseconds);
 }
 
 bool testParseFix(){
@@ -182,6 +197,77 @@ bool testCalculateTimeDifference(){
     return passed;
 }
 
+bool testAddFixes(){
+    bool passed = true;
+
+    for (int i = 0; i < 10; i++){
+        fix fix1;
+        fix1.latitude = 0;
+        fix1.longitude = (float)i / 100;
+        fix1.altitude = 0;
+
+        instant time1;
+        time1.year = 2023;
+        time1.month = 7;
+        time1.day = 3;
+        time1.hours = 21;
+        time1.minutes = 36;
+        time1.seconds = i / 10;
+        time1.milliseconds = i * 100;
+
+        if (time1.milliseconds >= 1000){
+            time1.milliseconds = time1.milliseconds % 1000;
+        }
+
+        fix1.time = time1;
+        addFix(fix1);
+    }
+
+    passed = passed & intAssertEquals(9, fixes_head, "fixes_head should be 9 when fixes is full");
+    passed = passed & boolAssertEquals(true, fixes_populated, "fixes_populated should be true at this point");
+
+    //let's verify the contents of fixes to make sure I haven't effed something up.
+    passed = passed & floatAssertEquals(.09, fixes[9].longitude, "fix[9].longitude should be .1 after all the insertions");
+    passed = passed & floatAssertEquals(0, fixes[0].longitude, "the first fix.longitude should still be 0");
+
+    for (int i = 0; i < 15; i++){
+        fix fix1;
+        fix1.latitude = 0;
+        fix1.longitude = (float)i / 100;
+        fix1.altitude = 0;
+
+        instant time1;
+        time1.year = 2023;
+        time1.month = 7;
+        time1.day = 3;
+        time1.hours = 21;
+        time1.minutes = 36;
+        time1.seconds = i / 10;
+        time1.milliseconds = i * 100;
+
+        if (time1.milliseconds >= 1000){
+            time1.milliseconds = time1.milliseconds % 1000;
+        }
+
+        fix1.time = time1;
+        addFix(fix1);
+    }
+
+    passed = passed & intAssertEquals(4, fixes_head, "fixes_head should be 4 after adding a few more fixes.");
+
+    double currentSpeed = calcCurrentSpeed();
+    //probably someething absurdly high
+
+    //0 N, 0.05 W to 0 N, 0.14 W in 0.9 seconds
+    //gcmap.com says that's 10km, but I think it's dropping a few decimal points
+    //Wolfram Alpha says 40,000 km/hour
+
+    passed = passed & doubleAssertEquals(40030.173526, currentSpeed, "currentSpeed from these fixes");
+
+
+    return passed;
+}
+
 // bool testParseDateTime(){
 //     bool passed = true;
 //     //parseDateTime(uint8_t year, uint8_t month, uint8_t day,
@@ -203,6 +289,7 @@ int main(int argc, char const *argv[])
     passed = passed & testParseFix();
     passed = passed & testCalculateDisplacement();
     passed = passed & testCalculateTimeDifference();
+    passed = passed & testAddFixes();
     // passed = passed & testParseDateTime();
 
     if (!passed){

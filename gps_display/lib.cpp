@@ -27,7 +27,7 @@ struct fix{
   float latitude;
   float longitude;
   float altitude;
-  instant *time;
+  instant time;
 };
 
 struct displacement{
@@ -129,11 +129,11 @@ int calculateTimeDifference(struct instant *start, struct instant *end){
 
 
 const int FIXES_LENGTH = 10;
-fix *fixes[FIXES_LENGTH];
+fix fixes[FIXES_LENGTH];
 int8_t fixes_head = -1;
 bool fixes_populated = false;
 
-int addFix(fix *thisFix){
+int addFix(fix thisFix){
   fixes_head = (fixes_head + 1) % FIXES_LENGTH;
   fixes[fixes_head] = thisFix;
 
@@ -148,24 +148,24 @@ double calcCurrentSpeed(){
   if (!fixes_populated){
     return 0;
   }
-  fix *end = fixes[fixes_head];
-  fix *start = fixes[(fixes_head - 1) % FIXES_LENGTH];
+  fix end = fixes[fixes_head];
+  fix start = fixes[(fixes_head + 1) % FIXES_LENGTH];
 
   displacement d; 
-  calculateDisplacement(&d, *start, *end);
+  calculateDisplacement(&d, start, end);
 
-  int delta_ms = calculateTimeDifference(start->time, end->time);
+  int delta_ms = calculateTimeDifference(&start.time, &end.time);
 
   //d meters     x kilometers
   //--------  =  ------------
   //delta_ms     1 hour
 
-  double km_per_hour = (d.distanceMeters / delta_ms) * 60;
+  double km_per_hour = (d.distanceMeters / delta_ms) * 3600;
   //This seems wrong but hear me out
   // meters_per_millisecond = d.distanceMeters / delta_ms
-  // meters_per_hour = meters_per_millisecond * 1000 * 60
+  // meters_per_hour = meters_per_millisecond * 1000 * 3600
   // km_per_hour = meters_per_hour / 1000
-  // the two 1000s cancel out, leaving us with (meters / milliseconds) * 60
+  // the two 1000s cancel out, leaving us with (meters / milliseconds) * 3600
   return km_per_hour;
 }
 
