@@ -57,7 +57,7 @@ bool testParseFix(){
     bool passed = true;
 
     fix parsed;
-    parseFix(&parsed, 5107.0017737, 'N', 11402.3291611, 'W', 100.0);
+    agocsParseFix(&parsed, 5107.0017737, 'N', 11402.3291611, 'W', 100.0);
     //latitude 51 degrees 07.0017737 minutes
     //should be 51.1167
     //longitude 114 degrees 02.3291611 minutes
@@ -68,13 +68,13 @@ bool testParseFix(){
     passed = passed & floatAssertEquals(-114.03882F, parsed.longitude, "First longitude");
     passed = passed & floatAssertEquals(100, parsed.altitude, "First Altitude");
 
-    parseFix(&parsed, 0, 'N', 0, 'E', 0);
+    agocsParseFix(&parsed, 0, 'N', 0, 'E', 0);
     passed = passed & floatAssertEquals(0, parsed.latitude, "Zeros latitude");
     passed = passed & floatAssertEquals(0, parsed.longitude, "Zeros longitude");
     passed = passed & floatAssertEquals(0, parsed.altitude, "zero altitude");
 
     //4740.6709N, 12225.7666W
-    parseFix(&parsed, 4740.6709, 'N', 12225.7666, 'W', 102.6);
+    agocsParseFix(&parsed, 4740.6709, 'N', 12225.7666, 'W', 102.6);
     passed = passed & floatAssertEquals(47.677845, parsed.latitude, "Recorded data latitude");
     passed = passed & floatAssertEquals(-122.429443, parsed.longitude, "Recorded data longitude");
     passed = passed & floatAssertEquals(102.6, parsed.altitude, "Recorded data altitude");

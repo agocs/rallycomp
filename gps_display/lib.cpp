@@ -35,7 +35,7 @@ struct displacement{
   double bearingDegrees;
 };
 
-int parseFix (struct fix *output, float latitude, char lat_dir, float longitude, char lon_dir, float altitude) {
+inline int agocsParseFix (struct fix *output, float latitude, char lat_dir, float longitude, char lon_dir, float altitude) {
   //this might be a little lossy, but hopefully not very
   //move decimal point two places to the left
   latitude = latitude / 100.0;
@@ -65,19 +65,19 @@ int parseFix (struct fix *output, float latitude, char lat_dir, float longitude,
 
 const double EarthRadius = 6371000.0;  // Earth's radius in meters
 
-double toRadians(double degrees) {
+inline double agocsToRadians(double degrees) {
   return degrees * M_PI / 180.0;
 }
 
-double toDegrees(double radians) {
+inline double agocsToDegrees(double radians) {
   return radians * 180.0 / M_PI;
 }
 
-double calculateDisplacement(struct displacement *output, const fix& fix1, const fix& fix2) {
-  double lat1 = toRadians(fix1.latitude);
-  double lon1 = toRadians(fix1.longitude);
-  double lat2 = toRadians(fix2.latitude);
-  double lon2 = toRadians(fix2.longitude);
+inline double calculateDisplacement(struct displacement *output, const fix& fix1, const fix& fix2) {
+  double lat1 = agocsToRadians(fix1.latitude);
+  double lon1 = agocsToRadians(fix1.longitude);
+  double lat2 = agocsToRadians(fix2.latitude);
+  double lon2 = agocsToRadians(fix2.longitude);
 
   double deltaLat = lat2 - lat1;
   double deltaLon = lon2 - lon1;
@@ -92,7 +92,7 @@ double calculateDisplacement(struct displacement *output, const fix& fix1, const
              std::sin(lat1) * std::cos(lat2) * std::cos(deltaLon);
 
   double bearing = std::atan2(y, x);
-  bearing = toDegrees(bearing);
+  bearing = agocsToDegrees(bearing);
 
   // Ensure the bearing is within the range [0, 360)
   if (bearing < 0) {
@@ -113,7 +113,7 @@ double calculateDisplacement(struct displacement *output, const fix& fix1, const
 
 //This really only needs to work when start and end are within like 2 seconds of each other, max
 //returns difference in milliseconds
-int calculateTimeDifference(struct instant *start, struct instant *end){
+inline int calculateTimeDifference(struct instant *start, struct instant *end){
    int result = end->milliseconds - start->milliseconds;
    result += (end->seconds - start->seconds) * 1000;
    result += (end->minutes - start->minutes) * 60 * 1000;
@@ -129,11 +129,11 @@ int calculateTimeDifference(struct instant *start, struct instant *end){
 
 
 const int FIXES_LENGTH = 10;
-fix fixes[FIXES_LENGTH];
-int8_t fixes_head = -1;
-bool fixes_populated = false;
+inline fix fixes[FIXES_LENGTH];
+inline int8_t fixes_head = -1;
+inline bool fixes_populated = false;
 
-void addFix(fix thisFix){
+inline void addFix(fix thisFix){
   fixes_head = (fixes_head + 1) % FIXES_LENGTH;
   fixes[fixes_head] = thisFix;
 
@@ -149,7 +149,7 @@ struct velocity{
   double bearingDegrees;
 };
 
-double calcCurrentSpeed(struct velocity *current){
+inline double calcCurrentSpeed(struct velocity *current){
   if (!fixes_populated){
     return 0;
   }
@@ -178,12 +178,12 @@ double calcCurrentSpeed(struct velocity *current){
 
 
 const double KM_TO_MILES = .6213712;
-double toMiles(double kph){
+inline double toMiles(double kph){
   return kph * KM_TO_MILES;
 }
 
 
-void makeScreenOutput(char *output, struct velocity velo){
+inline void makeScreenOutput(char *output, struct velocity velo){
   //example output
   //00.00 mph 000°
   //______________ 14 chars
