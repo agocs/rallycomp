@@ -133,7 +133,7 @@ fix fixes[FIXES_LENGTH];
 int8_t fixes_head = -1;
 bool fixes_populated = false;
 
-int addFix(fix thisFix){
+void addFix(fix thisFix){
   fixes_head = (fixes_head + 1) % FIXES_LENGTH;
   fixes[fixes_head] = thisFix;
 
@@ -176,6 +176,23 @@ double calcCurrentSpeed(struct velocity *current){
   return km_per_hour;
 }
 
+
+const double KM_TO_MILES = .6213712;
+double toMiles(double kph){
+  return kph * KM_TO_MILES;
+}
+
+
+void makeScreenOutput(char *output, struct velocity velo){
+  //example output
+  //00.00 mph 000°
+  //______________ 14 chars
+  // 7.67 mph   1xc2xb0
+
+  double mph = toMiles(velo.speed_kmh);
+
+  sprintf(output, "%5.2f mph %3.0f*", mph, velo.bearingDegrees);
+}
 
 // int makeScreenInfo(struct screenInfo *output) {
 //   //time

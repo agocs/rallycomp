@@ -197,6 +197,18 @@ bool testCalculateTimeDifference(){
     return passed;
 }
 
+bool testOutput(){
+    bool passed = true;
+    velocity velo;
+    velo.speed_kmh = 12.345;
+    velo.bearingDegrees = 1.234;
+
+    char output[15];
+    makeScreenOutput(output, velo);
+    printf("%s\n", output);
+    return true;
+}
+
 bool testAddFixes(){
     bool passed = true;
 
@@ -255,7 +267,8 @@ bool testAddFixes(){
 
     passed = passed & intAssertEquals(4, fixes_head, "fixes_head should be 4 after adding a few more fixes.");
 
-    double currentSpeed = calcCurrentSpeed();
+    velocity velo;
+    double currentSpeed = calcCurrentSpeed(&velo);
     //probably someething absurdly high
 
     //0 N, 0.05 W to 0 N, 0.14 W in 0.9 seconds
@@ -290,6 +303,7 @@ int main(int argc, char const *argv[])
     passed = passed & testCalculateDisplacement();
     passed = passed & testCalculateTimeDifference();
     passed = passed & testAddFixes();
+    passed = passed & testOutput();
     // passed = passed & testParseDateTime();
 
     if (!passed){
