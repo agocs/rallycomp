@@ -138,27 +138,25 @@ void loop() {
     velocity v;
     calcCurrentSpeed(&v, true);
 
-    char output[15];
+    char output[18];
     makeScreenOutput(output, v);
+
+    velocity newV;
+    calcCurrentSpeed(&newV, false);
+
+    double speed_mph =toMiles(v.speed_kmh);
+    float gps_speed = GPS.speed * 1.15;
+    double speed_without_alt = toMiles(newV.speed_kmh);
+
+    sprintf(output, "%5.2f\n%5.2f\n%5.2f", speed_mph, gps_speed, speed_without_alt);
+
+    Serial.printf("calculated:%f,gps%f,no_alt:%f", speed_mph, gps_speed, speed_without_alt);
 
     display.clearDisplay();
     display.setCursor(0,0);
     display.println(output);
     display.display();
 
-    fix end = fixes[fixes_head];
-    fix start = fixes[(fixes_head + 1) % FIXES_LENGTH];
-    displacement d; 
-    calculateDisplacement(&d, start, end, true);
-
-    Serial.print("distance: "); Serial.print(d.distanceMeters);
-    Serial.print("\nStart: "); Serial.printf("%i.%i", start.time.seconds, start.time.milliseconds);
-    Serial.print("\nEnd: "); Serial.printf("%i.%i", end.time.seconds, end.time.milliseconds);
-
-    double diff = calculateTimeDifference(start.time, end.time);
-    Serial.print(" time: "); Serial.print(diff);
-    Serial.print("\n");
-  
   }
 
   // approximately every 2 seconds or so, print out the current stats
