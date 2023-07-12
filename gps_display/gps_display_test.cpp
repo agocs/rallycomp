@@ -197,18 +197,6 @@ bool testCalculateTimeDifference(){
     return passed;
 }
 
-bool testOutput(){
-    bool passed = true;
-    velocity velo;
-    velo.speed_kmh = 12.345;
-    velo.bearingDegrees = 1.234;
-
-    char output[15];
-    makeScreenOutput(output, velo);
-    printf("%s\n", output);
-    return true;
-}
-
 bool testAddFixes(){
     bool passed = true;
 
@@ -281,20 +269,17 @@ bool testAddFixes(){
     return passed;
 }
 
-// bool testParseDateTime(){
-//     bool passed = true;
-//     //parseDateTime(uint8_t year, uint8_t month, uint8_t day,
-//     //                 uint8_t hours, uint8_t minutes, uint8_t seconds,
-//     //                 uint16_t milliseconds)
+bool testOutput(){
+    bool passed = true;
+    velocity velo;
+    velo.speed_kmh = 12.345;
+    velo.bearingDegrees = 1.234;
 
-//     hackyTime ht = parseDateTime(2023, 7, 27, 23, 25, 8, 521);
-//     tmElements_t tm;
-//     breakTime(ht.datetime, tm);
-//     int year = tm.Year + 1970;
-//     passed = passed & intAssertEquals(2023, year, "parseDateTime year");
-
-//     return passed;
-// }
+    char output[15];
+    makeScreenOutput(output, velo);
+    printf("%s\n", output);
+    return true;
+}
 
 int main(int argc, char const *argv[])
 {
