@@ -256,7 +256,7 @@ bool testAddFixes(){
     passed = passed & intAssertEquals(4, fixes_head, "fixes_head should be 4 after adding a few more fixes.");
 
     velocity velo;
-    double currentSpeed = calcCurrentSpeed(&velo);
+    double currentSpeed = calcCurrentSpeed(&velo, true);
     //probably someething absurdly high
 
     //0 N, 0.05 W to 0 N, 0.14 W in 0.9 seconds
