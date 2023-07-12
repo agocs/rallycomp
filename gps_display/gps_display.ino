@@ -10,7 +10,7 @@
 #include <Adafruit_GPS.h>
 
 //my stuff
-#include "lib.cpp"
+#include "./lib.cpp"
 
 // what's the name of the hardware serial port?
 #define GPSSerial Serial1
@@ -57,7 +57,7 @@ Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
 void setup() {
   Serial.begin(115200);
 
-  Serial.println("128x64 OLED FeatherWing test");
+  Serial.println("Starting the GPS");
   delay(250); // wait for the OLED to power up
   display.begin(0x3C, true); // Address 0x3C default
 
@@ -74,12 +74,7 @@ void setup() {
   display.display();
 
   display.setRotation(1);
-  Serial.println("Button test");
-
-  pinMode(BUTTON_A, INPUT_PULLUP);
-  pinMode(BUTTON_B, INPUT_PULLUP);
-  pinMode(BUTTON_C, INPUT_PULLUP);
-
+  
   // text display tests
   display.setTextSize(1);
   display.setTextColor(SH110X_WHITE);
@@ -98,8 +93,6 @@ void setup() {
   // the parser doesn't care about other sentences at this time
   // Set the update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ); // 5 Hz update rate
-  // For the parsing code to work nicely and have time to sort thru the data, and
-  // print it out we don't suggest using anything higher than 1 Hz
 
   // Request updates on antenna status, comment out to keep quiet
   GPS.sendCommand(PGCMD_ANTENNA);
@@ -128,6 +121,22 @@ void loop() {
     Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
     if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
       return; // we can fail to parse a sentence in which case we should just wait for another
+
+    fix f;
+    agocsParseFix(&f, GPS.latitude, GPS.lat, GPS.longitude, GPS.lon, GPS.altitude);
+    addFix(f);
+
+    velocity v;
+    calcCurrentSpeed(&v);
+
+    char output[15];
+    makeScreenOutput(output, v);
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println(output);
+    display.display();
+  
   }
 
   // approximately every 2 seconds or so, print out the current stats
@@ -166,11 +175,7 @@ void loop() {
     }
   }
 
-  
-  if(!digitalRead(BUTTON_A)) display.print("A");
-  if(!digitalRead(BUTTON_B)) display.print("B");
-  if(!digitalRead(BUTTON_C)) display.print("C");
+
   delay(10);
   yield();
-  display.display();
 }
