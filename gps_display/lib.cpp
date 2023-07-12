@@ -113,15 +113,15 @@ inline double calculateDisplacement(struct displacement *output, const fix& fix1
 
 //This really only needs to work when start and end are within like 2 seconds of each other, max
 //returns difference in milliseconds
-inline int calculateTimeDifference(struct instant *start, struct instant *end){
-   int result = end->milliseconds - start->milliseconds;
-   result += (end->seconds - start->seconds) * 1000;
-   result += (end->minutes - start->minutes) * 60 * 1000;
-   result += (end->hours - start->hours) * 60 * 60 * 1000;
+inline int calculateTimeDifference(struct instant start, struct instant end){
+   int result = end.milliseconds - start.milliseconds;
+   result += (end.seconds - start.seconds) * 1000;
+   result += (end.minutes - start.minutes) * 60 * 1000;
+   result += (end.hours - start.hours) * 60 * 60 * 1000;
 
    //okay realistically we're only going to see the same day or the next day here
    //This solution should take care of month boundaries, year boundaries, and leap years
-   if (end->day != start->day){
+   if (end.day != start.day){
     result += 24 * 60 * 60 * 1000;
    }
   return result;
@@ -159,7 +159,7 @@ inline double calcCurrentSpeed(struct velocity *current){
   displacement d; 
   calculateDisplacement(&d, start, end);
 
-  int delta_ms = calculateTimeDifference(&start.time, &end.time);
+  int delta_ms = calculateTimeDifference(start.time, end.time);
 
   //d meters     x kilometers
   //--------  =  ------------

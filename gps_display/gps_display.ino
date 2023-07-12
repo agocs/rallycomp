@@ -76,7 +76,7 @@ void setup() {
   display.setRotation(1);
   
   // text display tests
-  display.setTextSize(1);
+  display.setTextSize(2);
   display.setTextColor(SH110X_WHITE);
   display.setCursor(0,0);
   display.println("Setting up GPS");
@@ -124,6 +124,15 @@ void loop() {
 
     fix f;
     agocsParseFix(&f, GPS.latitude, GPS.lat, GPS.longitude, GPS.lon, GPS.altitude);
+    instant i;
+    i.year = GPS.year;
+    i.month = GPS.month;
+    i.day = GPS.day;
+    i.hours = GPS.hour;
+    i.minutes = GPS.minute;
+    i.seconds = GPS.seconds;
+    i.milliseconds = GPS.milliseconds;
+    f.time = i;
     addFix(f);
 
     velocity v;
@@ -136,6 +145,19 @@ void loop() {
     display.setCursor(0,0);
     display.println(output);
     display.display();
+
+    fix end = fixes[fixes_head];
+    fix start = fixes[(fixes_head + 1) % FIXES_LENGTH];
+    displacement d; 
+    calculateDisplacement(&d, start, end);
+
+    Serial.print("distance: "); Serial.print(d.distanceMeters);
+    Serial.print("\nStart: "); Serial.printf("%i.%i", start.time.seconds, start.time.milliseconds);
+    Serial.print("\nEnd: "); Serial.printf("%i.%i", end.time.seconds, end.time.milliseconds);
+
+    double diff = calculateTimeDifference(start.time, end.time);
+    Serial.print(" time: "); Serial.print(diff);
+    Serial.print("\n");
   
   }
 

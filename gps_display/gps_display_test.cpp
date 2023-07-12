@@ -153,19 +153,19 @@ bool testCalculateTimeDifference(){
     time2.seconds = 18;
     time2.milliseconds = 800;
 
-    int difference1 = calculateTimeDifference(&time1, &time2);
+    int difference1 = calculateTimeDifference(time1, time2);
     passed = passed & intAssertEquals(400, difference1, "400 ms");
 
     time2.seconds = 19;
     time2.milliseconds = 400;
 
-    int difference2 = calculateTimeDifference(&time1, &time2);
+    int difference2 = calculateTimeDifference(time1, time2);
     passed = passed & intAssertEquals(1000, difference2, "second boundary");
 
     time2.minutes = 37;
     time2.milliseconds = 401;
 
-    int difference3 = calculateTimeDifference(&time1, &time2);
+    int difference3 = calculateTimeDifference(time1, time2);
     passed = passed & intAssertEquals(61001, difference3, "one minute and one ms");
 
     //let's test a day boundary
@@ -181,7 +181,7 @@ bool testCalculateTimeDifference(){
     time2.seconds = 0;
     time2.milliseconds = 100;
 
-    int difference4 = calculateTimeDifference(&time1, &time2);
+    int difference4 = calculateTimeDifference(time1, time2);
     passed = passed & intAssertEquals(200, difference4, "day boundary");
 
     //month boundary?
@@ -191,7 +191,7 @@ bool testCalculateTimeDifference(){
     time2.month = 8;
     time2.day = 1;
 
-    int difference5 = calculateTimeDifference(&time1, &time2);
+    int difference5 = calculateTimeDifference(time1, time2);
     passed = passed & intAssertEquals(200, difference5, "month boundary");
 
     return passed;
