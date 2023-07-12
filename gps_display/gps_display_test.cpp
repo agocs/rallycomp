@@ -100,7 +100,7 @@ bool testCalculateDisplacement(){
 
     displacement output;
 
-    calculateDisplacement(&output, fix1, fix2);
+    calculateDisplacement(&output, fix1, fix2, true);
 
     //1989.448794 m flat
     //1990.077009 m with altitude
@@ -114,7 +114,7 @@ bool testCalculateDisplacement(){
     fix fix3;
     fix3.latitude = 0;
     fix3.longitude = 0;
-    fix3.altitude - 0;
+    fix3.altitude = 0;
 
     fix fix4;
     fix4.latitude = 0.016666666666; //one minute of latitude
@@ -123,7 +123,7 @@ bool testCalculateDisplacement(){
 
     displacement output2;
 
-    calculateDisplacement(&output2, fix3, fix4);
+    calculateDisplacement(&output2, fix3, fix4, true);
 
     passed = passed & doubleAssertEquals(1853.248874, output2.distanceMeters, "Displacement distance, one NM");
     passed = passed & doubleAssertEquals(0, output2.bearingDegrees, "Displacement degrees, one NM straight north");

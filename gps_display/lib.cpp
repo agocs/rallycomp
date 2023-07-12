@@ -73,7 +73,7 @@ inline double agocsToDegrees(double radians) {
   return radians * 180.0 / M_PI;
 }
 
-inline double calculateDisplacement(struct displacement *output, const fix& fix1, const fix& fix2) {
+inline double calculateDisplacement(struct displacement *output, const fix& fix1, const fix& fix2, bool includeAltitude) {
   double lat1 = agocsToRadians(fix1.latitude);
   double lon1 = agocsToRadians(fix1.longitude);
   double lat2 = agocsToRadians(fix2.latitude);
@@ -101,9 +101,11 @@ inline double calculateDisplacement(struct displacement *output, const fix& fix1
 
   double distance = EarthRadius * c;
 
-  float altitude_difference = fix2.altitude - fix1.altitude;
 
-  distance = sqrt (pow(distance, 2) + pow(altitude_difference, 2));
+  if(includeAltitude){
+    float altitude_difference = fix2.altitude - fix1.altitude;
+    distance = sqrt (pow(distance, 2) + pow(altitude_difference, 2));
+  }
 
   (*output).distanceMeters = distance;
   (*output).bearingDegrees = bearing;
@@ -149,7 +151,7 @@ struct velocity{
   double bearingDegrees;
 };
 
-inline double calcCurrentSpeed(struct velocity *current){
+inline double calcCurrentSpeed(struct velocity *current, bool includeAltitude){
   if (!fixes_populated){
     return 0;
   }
@@ -157,7 +159,7 @@ inline double calcCurrentSpeed(struct velocity *current){
   fix start = fixes[(fixes_head + 1) % FIXES_LENGTH];
 
   displacement d; 
-  calculateDisplacement(&d, start, end);
+  calculateDisplacement(&d, start, end, includeAltitude);
 
   int delta_ms = calculateTimeDifference(start.time, end.time);
 

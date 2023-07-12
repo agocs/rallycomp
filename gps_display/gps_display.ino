@@ -149,7 +149,7 @@ void loop() {
     fix end = fixes[fixes_head];
     fix start = fixes[(fixes_head + 1) % FIXES_LENGTH];
     displacement d; 
-    calculateDisplacement(&d, start, end);
+    calculateDisplacement(&d, start, end, true);
 
     Serial.print("distance: "); Serial.print(d.distanceMeters);
     Serial.print("\nStart: "); Serial.printf("%i.%i", start.time.seconds, start.time.milliseconds);
