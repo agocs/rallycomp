@@ -92,7 +92,6 @@ void loop() {
       Serial.print("Antenna status: "); Serial.println((int)GPS.antenna);
     }
   }
-
   
   yield();
 }
