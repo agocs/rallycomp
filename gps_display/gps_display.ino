@@ -9,6 +9,9 @@
 
 #include <Adafruit_GPS.h>
 
+//my stuff
+#include "./lib.cpp"
+
 // what's the name of the hardware serial port?
 #define GPSSerial Serial1
 
@@ -54,7 +57,7 @@ Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
 void setup() {
   Serial.begin(115200);
 
-  Serial.println("128x64 OLED FeatherWing test");
+  Serial.println("Starting the GPS");
   delay(250); // wait for the OLED to power up
   display.begin(0x3C, true); // Address 0x3C default
 
@@ -71,14 +74,9 @@ void setup() {
   display.display();
 
   display.setRotation(1);
-  Serial.println("Button test");
-
-  pinMode(BUTTON_A, INPUT_PULLUP);
-  pinMode(BUTTON_B, INPUT_PULLUP);
-  pinMode(BUTTON_C, INPUT_PULLUP);
-
+  
   // text display tests
-  display.setTextSize(1);
+  display.setTextSize(2);
   display.setTextColor(SH110X_WHITE);
   display.setCursor(0,0);
   display.println("Setting up GPS");
@@ -94,9 +92,7 @@ void setup() {
   // For parsing data, we don't suggest using anything but either RMC only or RMC+GGA since
   // the parser doesn't care about other sentences at this time
   // Set the update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
-  // For the parsing code to work nicely and have time to sort thru the data, and
-  // print it out we don't suggest using anything higher than 1 Hz
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ); // 5 Hz update rate
 
   // Request updates on antenna status, comment out to keep quiet
   GPS.sendCommand(PGCMD_ANTENNA);
@@ -107,6 +103,8 @@ void setup() {
   GPSSerial.println(PMTK_Q_RELEASE);
   
 }
+
+
 
 void loop() {
 
@@ -120,52 +118,84 @@ void loop() {
     // a tricky thing here is if we print the NMEA sentence, or data
     // we end up not listening and catching other sentences!
     // so be very wary if using OUTPUT_ALLDATA and trying to print out data
-    Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
+    //Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
     if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
       return; // we can fail to parse a sentence in which case we should just wait for another
+
+    fix f;
+    agocsParseFix(&f, GPS.latitude, GPS.lat, GPS.longitude, GPS.lon, GPS.altitude);
+    instant i;
+    i.year = GPS.year;
+    i.month = GPS.month;
+    i.day = GPS.day;
+    i.hours = GPS.hour;
+    i.minutes = GPS.minute;
+    i.seconds = GPS.seconds;
+    i.milliseconds = GPS.milliseconds;
+    f.time = i;
+    addFix(f);
+
+    velocity v;
+    calcCurrentSpeed(&v, true);
+
+    char output[18];
+    makeScreenOutput(output, v);
+
+    velocity newV;
+    calcCurrentSpeed(&newV, false);
+
+    double speed_mph = toMiles(v.speed_kmh);
+    float gps_speed = GPS.speed * 1.15;
+    double speed_without_alt = toMiles(newV.speed_kmh);
+
+    sprintf(output, "%5.2f\n%5.2f\n%5.2f", speed_mph, gps_speed, speed_without_alt);
+
+    Serial.printf("calculated:%f,gps:%f,no_alt:%f\n", speed_mph, gps_speed, speed_without_alt);
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println(output);
+    display.display();
+
   }
 
   // approximately every 2 seconds or so, print out the current stats
-  if (millis() - timer > 2000) {
-    timer = millis(); // reset the timer
-    display.clearDisplay();
-    display.print("\nTime: ");
-    if (GPS.hour < 10) { display.print('0'); }
-    display.print(GPS.hour, DEC); display.print(':');
-    if (GPS.minute < 10) { display.print('0'); }
-    display.print(GPS.minute, DEC); display.print(':');
-    if (GPS.seconds < 10) { display.print('0'); }
-    display.print(GPS.seconds, DEC); display.print('.');
-    if (GPS.milliseconds < 10) {
-      display.print("00");
-    } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
-      display.print("0");
-    }
-    display.println(GPS.milliseconds);
-    display.print("Date: ");
-    display.print(GPS.day, DEC); display.print('/');
-    display.print(GPS.month, DEC); display.print("/20");
-    display.println(GPS.year, DEC);
-    display.print("Fix: "); display.print((int)GPS.fix);
-    display.print(" quality: "); display.println((int)GPS.fixquality);
-    if (GPS.fix) {
-      display.print("Location: ");
-      display.print(GPS.latitude, 4); display.print(GPS.lat);
-      display.print(", ");
-      display.print(GPS.longitude, 4); display.println(GPS.lon);
-      display.print("Speed (knots): "); display.println(GPS.speed);
-      display.print("Angle: "); display.println(GPS.angle);
-      display.print("Altitude: "); display.println(GPS.altitude);
-      display.print("Satellites: "); display.println((int)GPS.satellites);
-      display.print("Antenna status: "); display.println((int)GPS.antenna);
-    }
-  }
+  // if (millis() - timer > 2000) {
+  //   timer = millis(); // reset the timer
+  //   display.clearDisplay();
+  //   Serial.print("\nTime: ");
+  //   if (GPS.hour < 10) { Serial.print('0'); }
+  //   Serial.print(GPS.hour, DEC); Serial.print(':');
+  //   if (GPS.minute < 10) { Serial.print('0'); }
+  //   Serial.print(GPS.minute, DEC); Serial.print(':');
+  //   if (GPS.seconds < 10) { Serial.print('0'); }
+  //   Serial.print(GPS.seconds, DEC); Serial.print('.');
+  //   if (GPS.milliseconds < 10) {
+  //     Serial.print("00");
+  //   } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
+  //     Serial.print("0");
+  //   }
+  //   Serial.println(GPS.milliseconds);
+  //   Serial.print("Date: ");
+  //   Serial.print(GPS.day, DEC); Serial.print('/');
+  //   Serial.print(GPS.month, DEC); Serial.print("/20");
+  //   Serial.println(GPS.year, DEC);
+  //   Serial.print("Fix: "); Serial.print((int)GPS.fix);
+  //   Serial.print(" quality: "); Serial.println((int)GPS.fixquality);
+  //   if (GPS.fix) {
+  //     Serial.print("Location: ");
+  //     Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
+  //     Serial.print(", ");
+  //     Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
+  //     Serial.print("Speed (knots): "); Serial.println(GPS.speed);
+  //     Serial.print("Angle: "); Serial.println(GPS.angle);
+  //     Serial.print("Altitude: "); Serial.println(GPS.altitude);
+  //     Serial.print("Satellites: "); Serial.println((int)GPS.satellites);
+  //     Serial.print("Antenna status: "); Serial.println((int)GPS.antenna);
+  //   }
+  // }
 
-  
-  if(!digitalRead(BUTTON_A)) display.print("A");
-  if(!digitalRead(BUTTON_B)) display.print("B");
-  if(!digitalRead(BUTTON_C)) display.print("C");
+
   delay(10);
   yield();
-  display.display();
 }
